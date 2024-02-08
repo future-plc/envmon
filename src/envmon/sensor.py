@@ -1,13 +1,24 @@
 import struct
 import logging
+import board
+from adafruit_bus_device.i2c_device import I2CDevice
+
+try:
+    from busio import I2C  # pylint: disable=unused-import
+except ImportError:
+    pass
 
 logger = logging.getLogger(__name__)
 
+AQI_ADDR = 0x77
+
 
 class Sensor():
-    def __init__(self, i2cbus, addr):
+    def __init__(self, i2cbus: I2C, addr):
         self.retries = 0
         self.addr = addr
+        self.i2c_device = None
+
         self._buffer = None
 
         """
@@ -37,18 +48,19 @@ class Sensor():
         if self._connected:
             with self.i2c_device as device:
                 try:
-                    i2c.readinto(self.buffer)
+                    device.readinto(self.buffer)
                 except OSError as err:
                     logger.error(
                             "{} Sensor unable to get readings".format(str(self))
                             )
+                    logger.error(err)
                     self._connected = False
         else:
             self.open_connection()
 
 
 class AQISensor(Sensor):
-    def __init__(self, i2cbus, addr):
+    def __init__(self, i2cbus, addr=AQI_ADDR):
         super.__init__(i2cbus, addr)
         self._buffer = bytearray(32)
 
