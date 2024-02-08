@@ -1,7 +1,6 @@
 from sensors import AQISensor
-from plotting import Plotter
+from plotting import Plotter, Environment
 from timer import Timer
-from dataclasses import dataclass
 import board
 from busio import I2C
 import logging
@@ -15,12 +14,6 @@ parser.add_argument("-v", "--debug", help="Enable debug logging")
 
 
 
-@dataclass
-class Environment():
-    o2_percent: float
-    co2_percent: float
-    particle_count: float
-    vox: float
 
 
 def update() -> Environment:
