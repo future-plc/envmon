@@ -2,8 +2,15 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from matplotlib.figure import Figure
 import datetime as dt
-from main import Environment
+from dataclasses import dataclass
 
+
+@dataclass
+class Environment():
+    o2_percent: float
+    co2_percent: float
+    particle_count: float
+    vox: float
 
 class Plotter():
     def __init__(self):
