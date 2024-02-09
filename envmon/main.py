@@ -1,4 +1,5 @@
 from sensors import Sensor, AQISensor
+from bmp280 import BMP280_I2C
 from plotting import Plotter, Environment
 from timer import Timer
 import time
@@ -14,6 +15,7 @@ parser.add_argument("-v", "--debug", help="Enable debug logging", action="store_
 def update(s: list[Sensor]) -> Environment:
     for s in my_sensors:
         results = s.read()
+        print(results)
     return
 
 
@@ -25,7 +27,8 @@ if __name__ == "__main__":
     logging.basicConfig(level=args.loglevel)
     i2c = I2C(board.SCL, board.SDA, frequency=100000)
     aqi = AQISensor(i2c)
-    my_sensors = [aqi]
+    bmp280 = BMP280_I2C(i2c)
+    my_sensors = [aqi, bmp280]
     
     time.sleep(2)
 
