@@ -103,7 +103,7 @@ class Sensor():
 
                 cmd = self.convert_16(cmd)
                 self.logger.debug("Sending command: {}".format(cmd))
-                device.write()
+                device.write(cmd)
         time.sleep(kwargs.get("delay_ms", 0)/1000.0)
 
     @staticmethod
