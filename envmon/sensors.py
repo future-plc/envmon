@@ -142,7 +142,7 @@ class Sensor():
     def _read_register(self, register: int, length: int) -> bytearray:
         register_value = bytearray(length)
         self._send_cmd(bytes([register & 0xFF]))
-        self._read_raw(register_value)
+        self._read_raw(register_value, length=24)
         return register_value
 
     def _read_byte(self, register):
