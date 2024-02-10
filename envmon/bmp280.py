@@ -109,12 +109,14 @@ class BMP280(Sensor):  # pylint: disable=invalid-name
         self._t_fine = None
 
     def _read_temperature(self) -> None:
+        self.logger.debug("Reading Temperature")
         # perform one measurement
         if self.mode != Mode.NORMAL:
             self.mode = Mode.FORCE
             # Wait for conversion to complete
             while self._get_status() & 0x08:
                 sleep(0.002)
+
         raw_temperature = (
             self._read24(Register.TEMPDATA) / 16
         )  # lowest 4 bits get dropped
@@ -131,6 +133,13 @@ class BMP280(Sensor):  # pylint: disable=invalid-name
 
         self._t_fine = int(var1 + var2)
         # print("t_fine: ", self.t_fine)
+
+    def _read24(self, register):
+        ret = 0.0
+        for b in self._read_register(register, 3):
+            ret *= 256
+            ret += float(b & 0xFF)
+        return ret
 
     def reset(self) -> None:
         """Soft reset the sensor"""
