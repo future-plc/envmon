@@ -42,6 +42,12 @@ if __name__ == "__main__":
         print(data)
     timer.add_event(print_readings, 5.0)
 
-    while 1:
-        timer.run()
-    plot.draw()
+    try:
+        while 1:
+            timer.run()
+            plot.draw()
+    except KeyboardInterrupt:
+        logging.info("Keyboard Interrupt Caught")
+        print("Shutting down")
+        #  put the sensors to sleep here
+
