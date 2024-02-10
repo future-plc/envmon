@@ -17,12 +17,6 @@ parser = argparse.ArgumentParser()
 parser.add_argument("-v", "--debug", help="Enable debug logging", action="store_const", dest="loglevel", const=logging.DEBUG, default=logging.WARNING)
 
 
-def update(s: list[Sensor]) -> :
-    for s in my_sensors:
-        results = s.read()
-        print(results)
-    return
-
 
 # plot = Plotter()
 
