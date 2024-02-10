@@ -195,6 +195,8 @@ class SCD40(Sensor):
         humi = (self._buffer[6] << 8) | self._buffer[7]
         self._relative_humidity = 100 * (humi / 2**16)
         self.logger.debug("Temp: {}".format(temp))
+        self.logger.debug("Hum: {}".format(humi))
+        self.logger.debug("co2: {}".format(self._co2))
 
     @property
     def data_ready(self) -> bool:
