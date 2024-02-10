@@ -95,10 +95,10 @@ class SCD40(Sensor):
         self.stop_periodic_measurement()
 
     def read(self):
-        co2 = self.CO2
-        rel_humidity = self.relative_humidity
-        self._sensor_data.co2 = co2
-        self._sensor_data.humidity = rel_humidity
+        if self.data_ready:
+            self._read_data()
+        co2 = self._co2
+        rel_humidity = self._relative_humidity
 
     @property
     def CO2(self) -> int:  # pylint:disable=invalid-name
