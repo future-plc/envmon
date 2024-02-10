@@ -134,7 +134,7 @@ class BMP280(Sensor):  # pylint: disable=invalid-name
 
     def reset(self) -> None:
         """Soft reset the sensor"""
-        self._write_register_byte(Register.SOFTRESET, 0xB6)
+        self._send_cmd(bytearray(Register.SOFTRESET, 0xB6))
         sleep(0.004)  # Datasheet says 2ms.  Using 4ms just to be safe
 
     def _write_ctrl_meas(self) -> None:
@@ -142,7 +142,7 @@ class BMP280(Sensor):  # pylint: disable=invalid-name
         Write the values to the ctrl_meas register in the device
         ctrl_meas sets the pressure and temperature data acquisition options
         """
-        self._write_register_byte(Register.CTRL_MEAS, self._ctrl_meas)
+        self._send_cmd(bytearray(Register.CTRL_MEAS, self._ctrl_meas))
 
     def _get_status(self) -> int:
         """Get the value from the status register in the device"""
@@ -159,7 +159,7 @@ class BMP280(Sensor):  # pylint: disable=invalid-name
             # Writes to the config register may be ignored while in Normal mode
             normal_flag = True
             self.mode = Mode.SLEEP  # So we switch to Sleep mode first
-        self._write_register_byte(Register.CONFIG, self._config)
+        self._send_cmd(bytearray(Register.CONFIG, self._config))
         if normal_flag:
             self.mode = Mode.NORMAL
 
