@@ -8,6 +8,7 @@ import board
 from busio import I2C
 import logging
 import argparse
+import time
 
 UPDATE_INTERVAL = 1000
 parser = argparse.ArgumentParser()
@@ -29,6 +30,8 @@ if __name__ == "__main__":
     bmp280 = BMP280(i2c, data)
     scd40 = SCD40(i2c, data)
     my_sensors = [aqi, bmp280, scd40]
+    scd40.start_periodic_measurement()
+    time.sleep(0.2)
 
     timer = Timer()
     for sensor in my_sensors:

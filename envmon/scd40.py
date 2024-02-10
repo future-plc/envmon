@@ -82,7 +82,7 @@ class SCD40(Sensor):
     def __init__(self, i2c_bus: I2C, sensor_data: SensorData, addr: int = SCD4X_DEFAULT_ADDR) -> None:
         self.logger = logging.getLogger("envmon.SCD40")
         super().__init__(i2c_bus, addr, sensor_data)
-        self._interval = 10.0
+        self._interval = 6.0
         self._buffer = bytearray(18)
         self._cmd = bytearray(2)
         self._crc_buffer = bytearray(2)
