@@ -15,7 +15,7 @@ class Event():
 
 class Timer():
     def __init__(self) -> None:
-        self._now = time.perf_counter
+        self._now = time.perf_counter()
         self._prev = 0.0
         self._events: dict[Event] = {}
 
@@ -24,7 +24,7 @@ class Timer():
         return self._now
 
     def run(self) -> None:
-        self._now = time.perf_counter
+        self._now = time.perf_counter()
         for e in self._events:
             e.update(self._now)
 
