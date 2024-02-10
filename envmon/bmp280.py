@@ -134,12 +134,6 @@ class BMP280(Sensor):  # pylint: disable=invalid-name
         self._t_fine = int(var1 + var2)
         # print("t_fine: ", self.t_fine)
 
-    def _read24(self, register):
-        ret = 0.0
-        for b in self._read_register(register, 3):
-            ret *= 256
-            ret += float(b & 0xFF)
-        return ret
 
     def reset(self) -> None:
         """Soft reset the sensor"""
@@ -342,6 +336,14 @@ class BMP280(Sensor):  # pylint: disable=invalid-name
         self.sea_level_pressure = p / math.pow(1.0 - value / 44330.0, 5.255)
 
     ####################### Internal helpers ################################
+
+    def _read24(self, register):
+        ret = 0.0
+        for b in self._read_register(register, 3):
+            ret *= 256
+            ret += float(b & 0xFF)
+        return ret
+
     def _read_coefficients(self) -> None:
         """Read & save the calibration coefficients"""
         coeff = self._read_register(Register.DIG_T1, 24)
@@ -357,57 +359,3 @@ class BMP280(Sensor):  # pylint: disable=invalid-name
         #                     self._pressure_calib[5]))
         # print("%d %d %d" % (self._pressure_calib[6], self._pressure_calib[7],
         #                     self._pressure_calib[8]))
-
-#    def _read_byte(self, register: int) -> int:
-#        """Read a byte register value and return it"""
-#        return self._read_register(register, 1)[0]
-#
-#    def _read24(self, register: int) -> float:
-#        """Read an unsigned 24-bit value as a floating point and return it."""
-#        ret = 0.0
-#        for b in self._read_register(register, 3):
-#            ret *= 256.0
-#            ret += float(b & 0xFF)
-#        return ret
-#
-#    def _read_register(self, register: int, length: int) -> None:
-#        """Low level register reading, not implemented in base class"""
-#        raise NotImplementedError()
-#
-#    def _write_register_byte(self, register: int, value: int) -> None:
-#        """Low level register writing, not implemented in base class"""
-#        raise NotImplementedError()
-
-
-class BMP280_I2C(BMP280):  # pylint: disable=invalid-name
-    """Driver for I2C connected BMP280.
-
-    :param ~busio.I2C i2c: The I2C bus the BMP280 is connected to.
-    :param int address: I2C device address. Defaults to :const:`0x77`.
-                        but another address can be passed in as an argument
-
-    """
-
-    def __init__(self, i2c: I2C, address: int = 0x77) -> None:
-        from adafruit_bus_device import (  # pylint: disable=import-outside-toplevel
-            i2c_device,
-        )
-
-        self._i2c = i2c_device.I2CDevice(i2c, address)
-        super().__init__()
-
-    def _read_register(self, register: int, length: int) -> bytearray:
-        """Low level register reading over I2C, returns a list of values"""
-        with self._i2c as i2c:
-            i2c.write(bytes([register & 0xFF]))
-            result = bytearray(length)
-            i2c.readinto(result)
-            # print("$%02X => %s" % (register, [hex(i) for i in result]))
-            return result
-
-    def _write_register_byte(self, register: int, value: int) -> None:
-        """Low level register writing over I2C, writes one 8-bit value"""
-        with self._i2c as i2c:
-            i2c.write(bytes([register & 0xFF, value & 0xFF]))
-            # print("$%02X <= 0x%02X" % (register, value))
-
