@@ -7,7 +7,7 @@ import datetime as dt
 
 
 class Plotter():
-    def __init__(self):
+    def __init__(self, sensor_data: SensorData):
         self.fig: Figure = plt.figure()
         self.ax = self.fig.add_subplot(1, 1, 1)
         self.xs: list[str] = []
@@ -18,10 +18,9 @@ class Plotter():
                 fargs=(self.xs, self.ys),
                 interval=1000
                 )
-        self.data: SensorData = None
+        self.data: SensorData = sensor_data
 
-    def draw(self, data: SensorData):
-        self.data = data
+    def draw(self):
         plt.show()
 
     def _animate(self, i, xs, ys):
