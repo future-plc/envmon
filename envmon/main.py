@@ -18,7 +18,7 @@ parser.add_argument("-v", "--debug", help="Enable debug logging", action="store_
 
 
 
-
+plot = Plotter()
 if __name__ == "__main__":
     args = parser.parse_args()
     logging.basicConfig(level=args.loglevel)
@@ -31,6 +31,7 @@ if __name__ == "__main__":
     scd40 = SCD40(i2c, data)
     my_sensors = [aqi, bmp280, scd40]
     scd40.start_periodic_measurement()
+    bmp280.mode = 0x03
     time.sleep(0.2)
 
     timer = Timer()
@@ -43,5 +44,4 @@ if __name__ == "__main__":
 
     while 1:
         timer.run()
-    # plot.draw()
-    # timer.tick()
+    plot.draw()
