@@ -2,7 +2,7 @@ import math
 import struct
 import logging
 from time import sleep
-from enum import Enum
+from enum import IntEnum
 from sensors import Sensor
 try:
     from typing import Optional
@@ -20,9 +20,9 @@ except ImportError:
 
 
 _CHIP_ID = 0x58
-BMP280_ADDR = None
+BMP280_ADDR = 0x77
 
-class Register(Enum):
+class Register(IntEnum):
     """ BMP280 Register addresses """
 
     CHIPID = 0xD0
@@ -35,7 +35,7 @@ class Register(Enum):
     TEMPDATA = 0xFA
 
 
-class IIR_Filter(Enum):
+class IIR_Filter(IntEnum):
     """
     IIR filter values
 
@@ -48,7 +48,7 @@ class IIR_Filter(Enum):
     X16 = 0x04
 
 
-class Overscan(Enum):
+class Overscan(IntEnum):
     """
     Overscan register values
 
@@ -62,14 +62,14 @@ class Overscan(Enum):
     X16 = 0x05
 
 
-class Mode(Enum):
+class Mode(IntEnum):
     """ mode values """
     SLEEP = 0x00
     FORCE = 0x01
     NORMAL = 0x03
 
 
-class Standby(Enum):
+class Standby(IntEnum):
     """
     standby timeconstant values
     TC_X[_Y] where X=milliseconds and Y=tenths of a millisecond
@@ -90,6 +90,7 @@ class BMP280(Sensor):  # pylint: disable=invalid-name
         # Check device ID.
         self.logger = logging.getLogger("envmon.BMP280")
         super().__init__(i2cbus, addr)
+        self._buffer = bytearray(4)
         chip_id = self._read_byte(Register.CHIPID)
         if _CHIP_ID != chip_id:
             raise RuntimeError("Failed to find BMP280! Chip ID 0x%x" % chip_id)
