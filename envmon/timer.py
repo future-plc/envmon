@@ -17,7 +17,7 @@ class Timer():
     def __init__(self) -> None:
         self._now = time.perf_counter()
         self._prev = 0.0
-        self._events: dict[Event] = {}
+        self._events: list[Event] = []
 
     @property
     def now(self) -> float:
