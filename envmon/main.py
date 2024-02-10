@@ -20,8 +20,6 @@ parser.add_argument("-v", "--debug", help="Enable debug logging", action="store_
 
 # plot = Plotter()
 
-def print_readings(sensor_data: SensorData):
-    print(sensor_data)
 
 
 if __name__ == "__main__":
@@ -40,6 +38,8 @@ if __name__ == "__main__":
     for sensor in my_sensors:
         timer.add_event(sensor.read, sensor.read_interval)
 
+    def print_readings():
+        print(data)
     timer.add_event(print_readings, 2.0)
 
     while 1:
