@@ -97,8 +97,8 @@ class SCD40(Sensor):
     def read(self):
         if self.data_ready:
             self._read_data()
-        co2 = self._co2
-        rel_humidity = self._relative_humidity
+        self._sensor_data.co2 = self._co2
+        self._sensor_data.humidity = self._relative_humidity
 
     @property
     def CO2(self) -> int:  # pylint:disable=invalid-name
