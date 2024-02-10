@@ -188,7 +188,7 @@ class SCD40(Sensor):
     def _read_data(self) -> None:
         """Reads the temp/hum/co2 from the sensor and caches it"""
         self.logger.debug("Reading data")
-        self._buffer = self._read_reply(delay_ms=1, length=9, cmd=Cmd.READMEASUREMENT)
+        self._buffer = self._read_reply(delay_ms=1, length=9, cmd=Cmd.READMEASUREMENT, raw=True)
         self._co2 = (self._buffer[0] << 8) | self._buffer[1]
         temp = (self._buffer[3] << 8) | self._buffer[4]
         self._temperature = -45 + 175 * (temp / 2**16)

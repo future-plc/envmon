@@ -132,7 +132,7 @@ class Sensor():
         reply_buffer = bytearray(length * (word_len + 1))
         self._read_raw(reply_buffer)
         data_buffer = []
-        if not kwargs.get("raw", None):
+        if not kwargs.get("raw", False):
             for i in range(0, length * (word_len + 1), 3):
                 data_buffer.append(struct.unpack_from(
                     ">H", reply_buffer[i:i+2])[0])
