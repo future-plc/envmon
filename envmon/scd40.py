@@ -3,7 +3,7 @@ import time
 import struct
 import logging
 from sensors import Sensor, SensorData
-from enum import Enum
+from enum import IntEnum
 from adafruit_bus_device import i2c_device
 
 try:
@@ -15,7 +15,8 @@ except ImportError:
 
 SCD4X_DEFAULT_ADDR = 0x62
 
-class Cmd(Enum):
+
+class Cmd(IntEnum):
     REINIT = 0x3646
     FACTORYRESET = 0x3632
     FORCEDRECAL = 0x362F
