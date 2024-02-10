@@ -356,6 +356,8 @@ class BMP280(Sensor):  # pylint: disable=invalid-name
         coeff = self._read_register(Register.DIG_T1, 24)
         coeff = list(struct.unpack("<HhhHhhhhhhhh", bytes(coeff)))
         coeff = [float(i) for i in coeff]
+        self.logger.debug("Reading calibration coefficients")
+        self.logger.debug(coeff)
         # The temp_calib lines up with DIG_T# registers.
         self._temp_calib = coeff[:3]
         self._pressure_calib = coeff[3:]
