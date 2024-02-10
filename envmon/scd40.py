@@ -171,7 +171,7 @@ class SCD40(Sensor):
             saved with persist_settings().
 
         """
-        self._buffer = self._read_reply(delay=1, length=3, cmd=Cmd.GETASCE)
+        self._read_reply(delay=1, length=3, cmd=Cmd.GETASCE)
         return self._buffer[1] == 1
 
     @self_calibration_enabled.setter
@@ -181,14 +181,14 @@ class SCD40(Sensor):
     def self_test(self) -> None:
         """Performs a self test, takes up to 10 seconds"""
         self.stop_periodic_measurement()
-        self._buffer = self._read_reply(delay_ms=10, length=3, cmd=Cmd.SELFTEST)
+        self._read_reply(delay_ms=10, length=3, cmd=Cmd.SELFTEST)
         if (self._buffer[0] != 0) or (self._buffer[1] != 0):
             raise RuntimeError("Self test failed")
 
     def _read_data(self) -> None:
         """Reads the temp/hum/co2 from the sensor and caches it"""
         self.logger.debug("Reading data")
-        self._buffer = self._read_reply(delay_ms=1, length=9, cmd=Cmd.READMEASUREMENT, raw=True)
+        self._read_reply(delay_ms=1, length=9, cmd=Cmd.READMEASUREMENT, raw=True)
         self._co2 = (self._buffer[0] << 8) | self._buffer[1]
         temp = (self._buffer[3] << 8) | self._buffer[4]
         self._temperature = -45 + 175 * (temp / 2**16)
@@ -198,7 +198,7 @@ class SCD40(Sensor):
     @property
     def data_ready(self) -> bool:
         """Check the sensor to see if new data is available"""
-        self._buffer = self._read_reply(delay_ms=1, length=3, cmd=Cmd.DATAREADY)
+        self._read_reply(delay_ms=1, length=3, cmd=Cmd.DATAREADY)
         ready = not ((self._buffer[0] & 0x07 == 0) and (self._buffer[1] == 0))
         self.logger.debug("Data ready: {}".format(ready))
         return ready

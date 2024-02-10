@@ -74,16 +74,16 @@ class Sensor():
     def read(self):
         raise NotImplementedError("Subclasses of Sensor impl read function")
 
-    def _read_raw(self, buffer: bytearray = None) -> None:
+    def _read_raw(self, buffer: bytearray = None, length=1) -> None:
         if self._buffer is None:
             raise NotImplementedError("Need to give this a bytearray buffer")
         if self._connected:
             with self.i2c_device as device:
                 try:
                     if buffer is None:
-                        device.readinto(self._buffer)
+                        device.readinto(self._buffer, end=length)
                     else:
-                        device.readinto(buffer, end=len(buffer))
+                        device.readinto(buffer, end=length)
 
                 except OSError as err:
                     self.logger.error("Unable to read from sensor")
@@ -129,13 +129,14 @@ class Sensor():
 
         time.sleep(round(delay_ms * 0.001, 3))
 
-        reply_buffer = bytearray(length * (word_len + 1))
-        self._read_raw(reply_buffer)
+        # reply_buffer = bytearray(length * (word_len + 1))
+        self._read_raw(length=length)
         data_buffer = []
         if not kwargs.get("raw", False):
+            self.logger.debug("me")
             for i in range(0, length * (word_len + 1), 3):
                 data_buffer.append(struct.unpack_from(
-                    ">H", reply_buffer[i:i+2])[0])
+                    ">H", self._buffer[i:i+2])[0])
         return data_buffer
 
     def _read_register(self, register: int, length: int) -> bytearray:
