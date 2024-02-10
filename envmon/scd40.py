@@ -39,7 +39,7 @@ class Cmd(IntEnum):
     MEASURESINGLESHOTRHTONLY = 0x2196
 
     def __len__(self):
-        return len(int(self))
+        return 2
 
 
 class SCD40(Sensor):

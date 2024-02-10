@@ -108,6 +108,8 @@ class Sensor():
 
     @staticmethod
     def convert_16(val: int):
+        if isinstance(val, bytearray) or isinstance(val, bytes):
+            return val
         ret = bytearray(2)
         if not isinstance(val, int):
             val = int(val)
