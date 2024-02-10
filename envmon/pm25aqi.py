@@ -6,7 +6,7 @@ AQI_ADDR = 0x12
 
 class AQISensor(Sensor):
     def __init__(self, i2cbus, sensor_data, addr=AQI_ADDR):
-        self.logger = logging.getLogger("envmon.aqi_sensor")
+        self.logger = logging.getLogger("envmon.AQI")
         self.logger.debug("Init AQI Sensor")
         super().__init__(i2cbus, addr, sensor_data)
         self._buffer = bytearray(32)

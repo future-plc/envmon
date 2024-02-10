@@ -1,10 +1,10 @@
 
 import time
 import struct
-from sensors import Sensor
+import logging
+from sensors import Sensor, SensorData
 from enum import Enum
 from adafruit_bus_device import i2c_device
-from micropython import const
 
 try:
     from typing import Tuple, Union
@@ -38,7 +38,7 @@ class Cmd(Enum):
     MEASURESINGLESHOTRHTONLY = 0x2196
 
 
-class SCD4X(Sensor):
+class SCD40(Sensor):
     """
     CircuitPython helper class for using the SCD4X CO2 sensor
 
@@ -75,8 +75,10 @@ class SCD4X(Sensor):
 
     """
 
-    def __init__(self, i2c_bus: I2C, address: int = SCD4X_DEFAULT_ADDR) -> None:
-        self.i2c_device = i2c_device.I2CDevice(i2c_bus, address)
+    def __init__(self, i2c_bus: I2C, sensor_data: SensorData, addr: int = SCD4X_DEFAULT_ADDR) -> None:
+        self.logger = logging.getLogger("envmon.SCD40")
+        super().__init__(i2c_bus, addr, sensor_data)
+        self._interval = 10.0
         self._buffer = bytearray(18)
         self._cmd = bytearray(2)
         self._crc_buffer = bytearray(2)
@@ -87,6 +89,12 @@ class SCD4X(Sensor):
         self._co2 = None
 
         self.stop_periodic_measurement()
+
+    def read(self):
+        co2 = self.CO2
+        rel_humidity = self.relative_humidity
+        self._sensor_data.co2 = co2
+        self._sensor_data.humidity = rel_humidity
 
     @property
     def CO2(self) -> int:  # pylint:disable=invalid-name
