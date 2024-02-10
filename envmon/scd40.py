@@ -199,7 +199,9 @@ class SCD40(Sensor):
     def data_ready(self) -> bool:
         """Check the sensor to see if new data is available"""
         self._buffer = self._read_reply(delay_ms=1, length=3, cmd=Cmd.DATAREADY)
-        return not ((self._buffer[0] & 0x07 == 0) and (self._buffer[1] == 0))
+        ready = not ((self._buffer[0] & 0x07 == 0) and (self._buffer[1] == 0))
+        self.logger.debug("Data ready: {}".format(ready))
+        return ready
 
     @property
     def serial_number(self) -> Tuple[int, int, int, int, int, int]:
