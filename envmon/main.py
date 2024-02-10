@@ -1,4 +1,5 @@
-from sensors import Sensor, AQISensor
+from scd40 import SCD4X
+from pm25aqi import AQISensor
 from bmp280 import BMP280_I2C
 from plotting import Plotter, Environment
 from timer import Timer
@@ -28,6 +29,7 @@ if __name__ == "__main__":
     i2c = I2C(board.SCL, board.SDA, frequency=100000)
     aqi = AQISensor(i2c)
     bmp280 = BMP280_I2C(i2c)
+    scd40 = SCD4X(i2c)
     my_sensors = [aqi, bmp280]
     
     time.sleep(2)
