@@ -21,14 +21,13 @@ class Plotter():
         self.data: SensorData = None
 
     def draw(self, data: SensorData):
-        self.data = env
+        self.data = data
         plt.show()
 
     def _animate(self, i, xs, ys):
-        vox = self.env.vox
 
         self.xs.append(dt.datetime.now().strftime('%H:%M:%S:$f'))
-        self.ys.append(vox)
+        self.ys.append(self.data.temp_c)
 
         x_limit = 20
 

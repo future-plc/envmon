@@ -44,7 +44,7 @@ if __name__ == "__main__":
     try:
         while 1:
             timer.run()
-            plot.draw()
+            plot.draw(data)
     except KeyboardInterrupt:
         logging.info("Keyboard Interrupt Caught")
         print("Shutting down")
