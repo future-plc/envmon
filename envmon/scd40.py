@@ -189,12 +189,12 @@ class SCD40(Sensor):
         """Reads the temp/hum/co2 from the sensor and caches it"""
         self.logger.debug("Reading data")
         self._read_reply(delay_ms=1, length=9, cmd=Cmd.READMEASUREMENT)
-        self.logger.debug(self._buffer)
         self._co2 = (self._buffer[0] << 8) | self._buffer[1]
         temp = (self._buffer[3] << 8) | self._buffer[4]
         self._temperature = -45 + 175 * (temp / 2**16)
         humi = (self._buffer[6] << 8) | self._buffer[7]
         self._relative_humidity = 100 * (humi / 2**16)
+        self.logger.debug("Temp: {}".format(temp))
 
     @property
     def data_ready(self) -> bool:
