@@ -313,7 +313,7 @@ class SCD40(Sensor):
             i2c.write(self._buffer, end=5)
         time.sleep(delay_ms * 1000)
 
-    def _read_reply(self, buff, num):
+    def _original_read_reply(self, buff, num):
         with self.i2c_device as i2c:
             i2c.readinto(buff, end=num)
         self._check_buffer_crc(self._buffer[0:num])
