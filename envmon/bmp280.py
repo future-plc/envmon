@@ -1,10 +1,9 @@
 import math
 import struct
+import logging
 from time import sleep
-
-from micropython import const
-
-
+from enum import Enum
+from sensors import Sensor
 try:
     from typing import Optional
 
@@ -18,95 +17,89 @@ except ImportError:
 
 #    I2C ADDRESS/BITS/SETTINGS
 #    -----------------------------------------------------------------------
-_CHIP_ID = const(0x58)
-
-_REGISTER_CHIPID = const(0xD0)
-_REGISTER_DIG_T1 = const(0x88)
-_REGISTER_SOFTRESET = const(0xE0)
-_REGISTER_STATUS = const(0xF3)
-_REGISTER_CTRL_MEAS = const(0xF4)
-_REGISTER_CONFIG = const(0xF5)
-_REGISTER_PRESSUREDATA = const(0xF7)
-_REGISTER_TEMPDATA = const(0xFA)
 
 
-"""iir_filter values"""
-IIR_FILTER_DISABLE = const(0)
-IIR_FILTER_X2 = const(0x01)
-IIR_FILTER_X4 = const(0x02)
-IIR_FILTER_X8 = const(0x03)
-IIR_FILTER_X16 = const(0x04)
+_CHIP_ID = 0x58
+BMP280_ADDR = None
 
-_BMP280_IIR_FILTERS = (
-    IIR_FILTER_DISABLE,
-    IIR_FILTER_X2,
-    IIR_FILTER_X4,
-    IIR_FILTER_X8,
-    IIR_FILTER_X16,
-)
+class Register(Enum):
+    """ BMP280 Register addresses """
 
-"""overscan values for temperature, pressure, and humidity"""
-OVERSCAN_DISABLE = const(0x00)
-OVERSCAN_X1 = const(0x01)
-OVERSCAN_X2 = const(0x02)
-OVERSCAN_X4 = const(0x03)
-OVERSCAN_X8 = const(0x04)
-OVERSCAN_X16 = const(0x05)
-
-_BMP280_OVERSCANS = {
-    OVERSCAN_DISABLE: 0,
-    OVERSCAN_X1: 1,
-    OVERSCAN_X2: 2,
-    OVERSCAN_X4: 4,
-    OVERSCAN_X8: 8,
-    OVERSCAN_X16: 16,
-}
-
-"""mode values"""
-MODE_SLEEP = const(0x00)
-MODE_FORCE = const(0x01)
-MODE_NORMAL = const(0x03)
-
-_BMP280_MODES = (MODE_SLEEP, MODE_FORCE, MODE_NORMAL)
-"""
-standby timeconstant values
-TC_X[_Y] where X=milliseconds and Y=tenths of a millisecond
-"""
-STANDBY_TC_0_5 = const(0x00)  # 0.5ms
-STANDBY_TC_10 = const(0x06)  # 10ms
-STANDBY_TC_20 = const(0x07)  # 20ms
-STANDBY_TC_62_5 = const(0x01)  # 62.5ms
-STANDBY_TC_125 = const(0x02)  # 125ms
-STANDBY_TC_250 = const(0x03)  # 250ms
-STANDBY_TC_500 = const(0x04)  # 500ms
-STANDBY_TC_1000 = const(0x05)  # 1000ms
-
-_BMP280_STANDBY_TCS = (
-    STANDBY_TC_0_5,
-    STANDBY_TC_10,
-    STANDBY_TC_20,
-    STANDBY_TC_62_5,
-    STANDBY_TC_125,
-    STANDBY_TC_250,
-    STANDBY_TC_500,
-    STANDBY_TC_1000,
-)
+    CHIPID = 0xD0
+    DIG_T1 = 0x88
+    SOFTRESET = 0xE0
+    STATUS = 0xF3
+    CTRL_MEAS = 0xF4
+    CONFIG = 0xF5
+    PRESSUREDATA = 0xF7
+    TEMPDATA = 0xFA
 
 
-class BMP280:  # pylint: disable=invalid-name
+class IIR_Filter(Enum):
+    """
+    IIR filter values
 
-    def __init__(self) -> None:
+    Higher IIR filtering reduces response to rapid changes
+    """
+    DISABLE = 0
+    X2 = 0x01
+    X4 = 0x02
+    X8 = 0x03
+    X16 = 0x04
+
+
+class Overscan(Enum):
+    """
+    Overscan register values
+
+    Overscan combines Xn readings to reduce noise and increase resolution
+    """
+    DISABLE = 0x00
+    X1 = 0x01
+    X2 = 0x02
+    X4 = 0x03
+    X8 = 0x04
+    X16 = 0x05
+
+
+class Mode(Enum):
+    """ mode values """
+    SLEEP = 0x00
+    FORCE = 0x01
+    NORMAL = 0x03
+
+
+class Standby(Enum):
+    """
+    standby timeconstant values
+    TC_X[_Y] where X=milliseconds and Y=tenths of a millisecond
+    """
+    TC_0_5 = 0x00  # 0.5ms
+    TC_10 = 0x06  # 10ms
+    TC_20 = 0x07  # 20ms
+    TC_62_5 = 0x01  # 62.5ms
+    TC_125 = 0x02  # 125ms
+    TC_250 = 0x03  # 250ms
+    TC_500 = 0x04  # 500ms
+    TC_1000 = 0x05  # 1000ms
+
+
+class BMP280(Sensor):  # pylint: disable=invalid-name
+
+    def __init__(self, i2cbus, addr=BMP280_ADDR) -> None:
         # Check device ID.
-        chip_id = self._read_byte(_REGISTER_CHIPID)
+        self.logger = logging.getLogger("envmon.BMP280")
+        super().__init__(i2cbus, addr)
+        chip_id = self._read_byte(Register.CHIPID)
         if _CHIP_ID != chip_id:
             raise RuntimeError("Failed to find BMP280! Chip ID 0x%x" % chip_id)
         # Set some reasonable defaults.
-        self._iir_filter = IIR_FILTER_DISABLE
-        self._overscan_temperature = OVERSCAN_X2
-        self._overscan_pressure = OVERSCAN_X16
-        self._t_standby = STANDBY_TC_0_5
-        self._mode = MODE_SLEEP
-        self._reset()
+        self._iir_filter = IIR_Filter.DISABLE
+        self._overscan_temperature = Overscan.X2
+        self._overscan_pressure = Overscan.X16
+        self._t_standby = Standby.TC_0_5
+        self._mode = Mode.SLEEP
+        self.reset()
         self._read_coefficients()
         self._write_ctrl_meas()
         self._write_config()
@@ -116,13 +109,13 @@ class BMP280:  # pylint: disable=invalid-name
 
     def _read_temperature(self) -> None:
         # perform one measurement
-        if self.mode != MODE_NORMAL:
-            self.mode = MODE_FORCE
+        if self.mode != Mode.NORMAL:
+            self.mode = Mode.FORCE
             # Wait for conversion to complete
             while self._get_status() & 0x08:
                 sleep(0.002)
         raw_temperature = (
-            self._read24(_REGISTER_TEMPDATA) / 16
+            self._read24(Register.TEMPDATA) / 16
         )  # lowest 4 bits get dropped
         # print("raw temp: ", UT)
         var1 = (
@@ -138,9 +131,9 @@ class BMP280:  # pylint: disable=invalid-name
         self._t_fine = int(var1 + var2)
         # print("t_fine: ", self.t_fine)
 
-    def _reset(self) -> None:
+    def reset(self) -> None:
         """Soft reset the sensor"""
-        self._write_register_byte(_REGISTER_SOFTRESET, 0xB6)
+        self._write_register_byte(Register.SOFTRESET, 0xB6)
         sleep(0.004)  # Datasheet says 2ms.  Using 4ms just to be safe
 
     def _write_ctrl_meas(self) -> None:
@@ -148,26 +141,26 @@ class BMP280:  # pylint: disable=invalid-name
         Write the values to the ctrl_meas register in the device
         ctrl_meas sets the pressure and temperature data acquisition options
         """
-        self._write_register_byte(_REGISTER_CTRL_MEAS, self._ctrl_meas)
+        self._write_register_byte(Register.CTRL_MEAS, self._ctrl_meas)
 
     def _get_status(self) -> int:
         """Get the value from the status register in the device"""
-        return self._read_byte(_REGISTER_STATUS)
+        return self._read_byte(Register.STATUS)
 
     def _read_config(self) -> int:
         """Read the value from the config register in the device"""
-        return self._read_byte(_REGISTER_CONFIG)
+        return self._read_byte(Register.CONFIG)
 
     def _write_config(self) -> None:
         """Write the value to the config register in the device"""
         normal_flag = False
-        if self._mode == MODE_NORMAL:
+        if self._mode == Mode.NORMAL:
             # Writes to the config register may be ignored while in Normal mode
             normal_flag = True
-            self.mode = MODE_SLEEP  # So we switch to Sleep mode first
-        self._write_register_byte(_REGISTER_CONFIG, self._config)
+            self.mode = Mode.SLEEP  # So we switch to Sleep mode first
+        self._write_register_byte(Register.CONFIG, self._config)
         if normal_flag:
-            self.mode = MODE_NORMAL
+            self.mode = Mode.NORMAL
 
     @property
     def mode(self) -> int:
@@ -179,7 +172,7 @@ class BMP280:  # pylint: disable=invalid-name
 
     @mode.setter
     def mode(self, value: int) -> None:
-        if not value in _BMP280_MODES:
+        if value not in Mode:
             raise ValueError("Mode '%s' not supported" % (value))
         self._mode = value
         self._write_ctrl_meas()
@@ -194,7 +187,7 @@ class BMP280:  # pylint: disable=invalid-name
 
     @standby_period.setter
     def standby_period(self, value: int) -> None:
-        if not value in _BMP280_STANDBY_TCS:
+        if value not in Standby:
             raise ValueError("Standby Period '%s' not supported" % (value))
         if self._t_standby == value:
             return
@@ -211,7 +204,7 @@ class BMP280:  # pylint: disable=invalid-name
 
     @overscan_temperature.setter
     def overscan_temperature(self, value: int) -> None:
-        if not value in _BMP280_OVERSCANS:
+        if value not in Overscan:
             raise ValueError("Overscan value '%s' not supported" % (value))
         self._overscan_temperature = value
         self._write_ctrl_meas()
@@ -226,7 +219,7 @@ class BMP280:  # pylint: disable=invalid-name
 
     @overscan_pressure.setter
     def overscan_pressure(self, value: int) -> None:
-        if not value in _BMP280_OVERSCANS:
+        if value not in Overscan:
             raise ValueError("Overscan value '%s' not supported" % (value))
         self._overscan_pressure = value
         self._write_ctrl_meas()
@@ -235,13 +228,13 @@ class BMP280:  # pylint: disable=invalid-name
     def iir_filter(self) -> int:
         """
         Controls the time constant of the IIR filter
-        Allowed values are set in the IIR_FILTER enum class
+        Allowed values are set in the IIR_Filter enum class
         """
         return self._iir_filter
 
     @iir_filter.setter
     def iir_filter(self, value: int) -> None:
-        if not value in _BMP280_IIR_FILTERS:
+        if value not in IIR_Filter:
             raise ValueError("IIR Filter '%s' not supported" % (value))
         self._iir_filter = value
         self._write_config()
@@ -250,7 +243,7 @@ class BMP280:  # pylint: disable=invalid-name
     def _config(self) -> int:
         """Value to be written to the device's config register"""
         config = 0
-        if self.mode == MODE_NORMAL:
+        if self.mode == Mode.NORMAL:
             config += self._t_standby << 5
         if self._iir_filter:
             config += self._iir_filter << 2
@@ -268,9 +261,9 @@ class BMP280:  # pylint: disable=invalid-name
     def measurement_time_typical(self) -> float:
         """Typical time in milliseconds required to complete a measurement in normal mode"""
         meas_time_ms = 1
-        if self.overscan_temperature != OVERSCAN_DISABLE:
+        if self.overscan_temperature != Overscan.DISABLE:
             meas_time_ms += 2 * _BMP280_OVERSCANS.get(self.overscan_temperature)
-        if self.overscan_pressure != OVERSCAN_DISABLE:
+        if self.overscan_pressure != Overscan.DISABLE:
             meas_time_ms += 2 * _BMP280_OVERSCANS.get(self.overscan_pressure) + 0.5
         return meas_time_ms
 
@@ -278,9 +271,9 @@ class BMP280:  # pylint: disable=invalid-name
     def measurement_time_max(self) -> float:
         """Maximum time in milliseconds required to complete a measurement in normal mode"""
         meas_time_ms = 1.25
-        if self.overscan_temperature != OVERSCAN_DISABLE:
+        if self.overscan_temperature != Overscan.DISABLE:
             meas_time_ms += 2.3 * _BMP280_OVERSCANS.get(self.overscan_temperature)
-        if self.overscan_pressure != OVERSCAN_DISABLE:
+        if self.overscan_pressure != Overscan.DISABLE:
             meas_time_ms += 2.3 * _BMP280_OVERSCANS.get(self.overscan_pressure) + 0.575
         return meas_time_ms
 
@@ -305,7 +298,7 @@ class BMP280:  # pylint: disable=invalid-name
 
         # Algorithm from the BMP280 driver
         # https://github.com/BoschSensortec/BMP280_driver/blob/master/bmp280.c
-        adc = self._read24(_REGISTER_PRESSUREDATA) / 16  # lowest 4 bits get dropped
+        adc = self._read24(Register.PRESSUREDATA) / 16  # lowest 4 bits get dropped
         var1 = float(self._t_fine) / 2.0 - 64000.0
         var2 = var1 * var1 * self._pressure_calib[5] / 32768.0
         var2 = var2 + var1 * self._pressure_calib[4] * 2.0
@@ -341,7 +334,7 @@ class BMP280:  # pylint: disable=invalid-name
     ####################### Internal helpers ################################
     def _read_coefficients(self) -> None:
         """Read & save the calibration coefficients"""
-        coeff = self._read_register(_REGISTER_DIG_T1, 24)
+        coeff = self._read_register(Register.DIG_T1, 24)
         coeff = list(struct.unpack("<HhhHhhhhhhhh", bytes(coeff)))
         coeff = [float(i) for i in coeff]
         # The temp_calib lines up with DIG_T# registers.
@@ -355,25 +348,25 @@ class BMP280:  # pylint: disable=invalid-name
         # print("%d %d %d" % (self._pressure_calib[6], self._pressure_calib[7],
         #                     self._pressure_calib[8]))
 
-    def _read_byte(self, register: int) -> int:
-        """Read a byte register value and return it"""
-        return self._read_register(register, 1)[0]
-
-    def _read24(self, register: int) -> float:
-        """Read an unsigned 24-bit value as a floating point and return it."""
-        ret = 0.0
-        for b in self._read_register(register, 3):
-            ret *= 256.0
-            ret += float(b & 0xFF)
-        return ret
-
-    def _read_register(self, register: int, length: int) -> None:
-        """Low level register reading, not implemented in base class"""
-        raise NotImplementedError()
-
-    def _write_register_byte(self, register: int, value: int) -> None:
-        """Low level register writing, not implemented in base class"""
-        raise NotImplementedError()
+#    def _read_byte(self, register: int) -> int:
+#        """Read a byte register value and return it"""
+#        return self._read_register(register, 1)[0]
+#
+#    def _read24(self, register: int) -> float:
+#        """Read an unsigned 24-bit value as a floating point and return it."""
+#        ret = 0.0
+#        for b in self._read_register(register, 3):
+#            ret *= 256.0
+#            ret += float(b & 0xFF)
+#        return ret
+#
+#    def _read_register(self, register: int, length: int) -> None:
+#        """Low level register reading, not implemented in base class"""
+#        raise NotImplementedError()
+#
+#    def _write_register_byte(self, register: int, value: int) -> None:
+#        """Low level register writing, not implemented in base class"""
+#        raise NotImplementedError()
 
 
 class BMP280_I2C(BMP280):  # pylint: disable=invalid-name
