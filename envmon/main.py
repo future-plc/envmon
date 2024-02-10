@@ -44,25 +44,26 @@ if __name__ == "__main__":
         print(data)
     timer.add_event(print_readings, 5.0)
 
-    def animate(i, xs, ys):
+    def animate(i, xs, y_data):
         timer.run()
 
         xs.append(dt.datetime.now().strftime('%H:%M:%S:$f'))
-        ys.append(data.temp_c)
+        y_data.append(data)
 
         x_limit = 20
 
         xs = xs[-x_limit:]
-        ys = ys[-x_limit:]
+        y_data = y_data[-x_limit:]
         ax.clear()
-        ax.plot(xs, ys)
+        ax.plot(xs, [d.humidity for d in ys])
+        ax.plot(xs, [d.temp_c for d in ys])
 
         plt.xticks(rotation=45, ha='right')
         plt.subplots_adjust(bottom=0.30)
-        plt.title("Shit")
-        plt.ylabel("poop")
+        plt.title("Sensor Data")
+        plt.ylabel("Temperature")
 
-    ani = animation.FuncAnimation(fig, animate, fargs=(xs, ys), interval=1000)
+    ani = animation.FuncAnimation(fig, animate, fargs=(xs, y_data), interval=1000)
     try:
         while 1:
             plt.show()
