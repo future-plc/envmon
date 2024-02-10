@@ -33,7 +33,7 @@ if __name__ == "__main__":
     i2c = I2C(board.SCL, board.SDA, frequency=100000)
     aqi = AQISensor(i2c, data)
     bmp280 = BMP280(i2c, data)
-    scd40 = SCD4X(i2c, data)
+#    scd40 = SCD4X(i2c, data)
     my_sensors = [aqi, bmp280]
 
     timer = Timer()
