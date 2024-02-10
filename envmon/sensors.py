@@ -78,8 +78,8 @@ class Sensor():
                             "Class needs to implement a send buffer"
                         )
                     cmd = self._send_buffer
-                    self.logger.debug("Sending command: {}".format(cmd))
-                    device.write(cmd)
+                self.logger.debug("Sending command: {}".format(cmd))
+                device.write(cmd)
         time.sleep(kwargs.get("delay_ms", 0)/1000.0)
 
     def _read_reply(
@@ -104,11 +104,11 @@ class Sensor():
         return data_buffer
 
     def _read_register(self, register: int, length: int) -> bytearray:
-        self.logger.debug("Reading register {}".format(register))
+        self.logger.debug("Reading register {:02x}".format(register))
         register_value = bytearray(length)
         self._send_cmd(bytes([register & 0xFF]))
         self._read_raw(register_value)
-        self.logger.debug("Register content: {}".format(register_value))
+        self.logger.debug("Register content: {}".format(register_value.hex()))
         return register_value
 
     def _read_byte(self, register):
