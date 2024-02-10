@@ -5,6 +5,9 @@ from bmp280 import BMP280
 from plotting import Plotter
 from timer import Timer
 import board
+import matplotlib.pyplot as plt
+import matplotlib.animation as animation
+import datetime as dt
 from busio import I2C
 import logging
 import argparse
@@ -14,9 +17,10 @@ UPDATE_INTERVAL = 1000
 parser = argparse.ArgumentParser()
 parser.add_argument("-v", "--debug", help="Enable debug logging", action="store_const", dest="loglevel", const=logging.DEBUG, default=logging.WARNING)
 
-
-
-
+fig = plt.figure()
+ax = fig.add_subplot(1,1,1)
+xs = []
+ys = []
 
 if __name__ == "__main__":
     args = parser.parse_args()
@@ -32,7 +36,6 @@ if __name__ == "__main__":
     scd40.start_periodic_measurement()
     time.sleep(0.2)
 
-    plot = Plotter(data)
     timer = Timer()
     for sensor in my_sensors:
         timer.add_event(sensor.read, sensor.read_interval)
@@ -40,11 +43,29 @@ if __name__ == "__main__":
     def print_readings():
         print(data)
     timer.add_event(print_readings, 5.0)
-    timer.add_event(plot.draw, 0.1)
 
+    def animate(i, xs, ys):
+        timer.run()
+
+        xs.append(dt.datetime.now().strftime('%H:%M:%S:$f'))
+        ys.append(data.temp_c)
+
+        x_limit = 20
+
+        xs = xs[-x_limit:]
+        ys = ys[-x_limit:]
+        ax.clear()
+        ax.plot(xs, ys)
+
+        plt.xticks(rotation=45, ha='right')
+        plt.subplots_adjust(bottom=0.30)
+        plt.title("Shit")
+        plt.ylabel("poop")
+
+    ani = animation.FuncAnimation(fig, animate, fargs=(xs, ys), interval=1000)
     try:
         while 1:
-            timer.run()
+            plt.show()
     except KeyboardInterrupt:
         logging.info("Keyboard Interrupt Caught")
         print("Shutting down")
