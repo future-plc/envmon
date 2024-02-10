@@ -35,7 +35,7 @@ class Sensor():
         self.i2cbus = i2cbus
         self.i2c_device = None
         self._sensor_data = sensor_data
-        self._interval = 0
+        self._interval = 5.0  # 5 seconds unless otherwise specified
         self._buffer = None
         self._connected = self.open_connection()
         if self.logger is None:
