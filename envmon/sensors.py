@@ -100,9 +100,7 @@ class Sensor():
                             "Class needs to implement a send buffer"
                         )
                     cmd = self._send_buffer
-                if isinstance(cmd, int) and cmd > 256:
-                    cmd = struct.pack(">i", cmd)
-                self.logger.debug("Sending command: {}".format(cmd.hex()))
+                self.logger.debug("Sending command: {}".format(cmd))
                 device.write(cmd)
         time.sleep(kwargs.get("delay_ms", 0)/1000.0)
 
