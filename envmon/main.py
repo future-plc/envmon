@@ -31,7 +31,6 @@ if __name__ == "__main__":
     scd40 = SCD40(i2c, data)
     my_sensors = [aqi, bmp280, scd40]
     scd40.start_periodic_measurement()
-    bmp280.mode = 0x03
     time.sleep(0.2)
 
     timer = Timer()
