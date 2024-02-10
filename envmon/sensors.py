@@ -132,12 +132,12 @@ class Sensor():
         # reply_buffer = bytearray(length * (word_len + 1))
         self._read_raw(length=length)
         data_buffer = []
-        if not kwargs.get("raw", False):
-            self.logger.debug("me")
-            for i in range(0, length * (word_len + 1), 3):
-                data_buffer.append(struct.unpack_from(
-                    ">H", self._buffer[i:i+2])[0])
-        return data_buffer
+        # if not kwargs.get("raw", False):
+        #     self.logger.debug("me")
+        #     for i in range(0, length * (word_len + 1), 3):
+        #         data_buffer.append(struct.unpack_from(
+        #             ">H", self._buffer[i:i+2])[0])
+        # return data_buffer
 
     def _read_register(self, register: int, length: int) -> bytearray:
         register_value = bytearray(length)
