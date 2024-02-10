@@ -100,13 +100,20 @@ class Sensor():
                             "Class needs to implement a send buffer"
                         )
                     cmd = self._send_buffer
+
+                cmd = self.convert_16(cmd)
                 self.logger.debug("Sending command: {}".format(cmd))
-                device.write(cmd)
+                device.write()
         time.sleep(kwargs.get("delay_ms", 0)/1000.0)
 
     @staticmethod
-    def pack_into_bytearray(i: int):
-        return struct.pack(">h", i)
+    def convert_16(val: int):
+        ret = bytearray(2)
+        if not isinstance(val, int):
+            val = int(val)
+        ret[0] = (val >> 8) & 0xFF
+        ret[1] = val & 0xFF
+        return ret
 
     def _read_reply(
             self, delay_ms: int = 30,
