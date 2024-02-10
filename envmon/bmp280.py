@@ -86,14 +86,15 @@ class Standby(IntEnum):
 
 class BMP280(Sensor):  # pylint: disable=invalid-name
 
-    def __init__(self, i2cbus, addr=BMP280_ADDR) -> None:
+    def __init__(self, i2cbus, sensor_data, addr=BMP280_ADDR, **kwargs) -> None:
         # Check device ID.
         self.logger = logging.getLogger("envmon.BMP280")
-        super().__init__(i2cbus, addr)
+        super().__init__(i2cbus, addr, sensor_data)
+        self._interval = kwargs.get("read_interval", 1.0)
         self._buffer = bytearray(4)
         chip_id = self._read_byte(Register.CHIPID)
         if _CHIP_ID != chip_id:
-            raise RuntimeError("Failed to find BMP280! Chip ID 0x%x" % chip_id)
+            self.logger.error("Failed to find BMP280! Chip ID 0x%x" % chip_id)
         # Set some reasonable defaults.
         self._iir_filter = IIR_Filter.DISABLE
         self._overscan_temperature = Overscan.X2
@@ -134,15 +135,10 @@ class BMP280(Sensor):  # pylint: disable=invalid-name
         self._t_fine = int(var1 + var2)
         # print("t_fine: ", self.t_fine)
 
-    def _read24(self, register):
-        ret = 0.0
-        for b in self._read_register(register, 3):
-            ret *= 256
-            ret += float(b & 0xFF)
-        return ret
 
     def reset(self) -> None:
         """Soft reset the sensor"""
+        self.logger.debug("Resetting")
         self._send_cmd(bytearray([Register.SOFTRESET, 0xB6]))
         sleep(0.004)  # Datasheet says 2ms.  Using 4ms just to be safe
 
@@ -151,6 +147,7 @@ class BMP280(Sensor):  # pylint: disable=invalid-name
         Write the values to the ctrl_meas register in the device
         ctrl_meas sets the pressure and temperature data acquisition options
         """
+        self.logger.debug("Setting ctrl_meas registers")
         self._send_cmd(bytearray([Register.CTRL_MEAS, self._ctrl_meas]))
 
     def _get_status(self) -> int:
@@ -168,6 +165,7 @@ class BMP280(Sensor):  # pylint: disable=invalid-name
             # Writes to the config register may be ignored while in Normal mode
             normal_flag = True
             self.mode = Mode.SLEEP  # So we switch to Sleep mode first
+        self.logger.debug("Setting config registers")
         self._send_cmd(bytearray([Register.CONFIG, self._config]))
         if normal_flag:
             self.mode = Mode.NORMAL
@@ -288,10 +286,13 @@ class BMP280(Sensor):  # pylint: disable=invalid-name
         return meas_time_ms
 
     def read(self) -> float:
+        ''' Intended to run from Event callback
+        updates global sensordata object '''
         self._read_temperature()
-        temperature_c =  self._t_fine / 5120.0
-        pressure = self.pressure
-        return (temperature_c, pressure)
+        temperature_c = self._t_fine / 5120.0
+        pressure_hpa = self.pressure
+        self._sensor_data.temp_c = temperature_c
+        self._sensor_data.pressure_hpa = pressure_hpa
 
     @property
     def temperature(self) -> float:
@@ -342,6 +343,14 @@ class BMP280(Sensor):  # pylint: disable=invalid-name
         self.sea_level_pressure = p / math.pow(1.0 - value / 44330.0, 5.255)
 
     ####################### Internal helpers ################################
+
+    def _read24(self, register):
+        ret = 0.0
+        for b in self._read_register(register, 3):
+            ret *= 256
+            ret += float(b & 0xFF)
+        return ret
+
     def _read_coefficients(self) -> None:
         """Read & save the calibration coefficients"""
         coeff = self._read_register(Register.DIG_T1, 24)
@@ -357,57 +366,3 @@ class BMP280(Sensor):  # pylint: disable=invalid-name
         #                     self._pressure_calib[5]))
         # print("%d %d %d" % (self._pressure_calib[6], self._pressure_calib[7],
         #                     self._pressure_calib[8]))
-
-#    def _read_byte(self, register: int) -> int:
-#        """Read a byte register value and return it"""
-#        return self._read_register(register, 1)[0]
-#
-#    def _read24(self, register: int) -> float:
-#        """Read an unsigned 24-bit value as a floating point and return it."""
-#        ret = 0.0
-#        for b in self._read_register(register, 3):
-#            ret *= 256.0
-#            ret += float(b & 0xFF)
-#        return ret
-#
-#    def _read_register(self, register: int, length: int) -> None:
-#        """Low level register reading, not implemented in base class"""
-#        raise NotImplementedError()
-#
-#    def _write_register_byte(self, register: int, value: int) -> None:
-#        """Low level register writing, not implemented in base class"""
-#        raise NotImplementedError()
-
-
-class BMP280_I2C(BMP280):  # pylint: disable=invalid-name
-    """Driver for I2C connected BMP280.
-
-    :param ~busio.I2C i2c: The I2C bus the BMP280 is connected to.
-    :param int address: I2C device address. Defaults to :const:`0x77`.
-                        but another address can be passed in as an argument
-
-    """
-
-    def __init__(self, i2c: I2C, address: int = 0x77) -> None:
-        from adafruit_bus_device import (  # pylint: disable=import-outside-toplevel
-            i2c_device,
-        )
-
-        self._i2c = i2c_device.I2CDevice(i2c, address)
-        super().__init__()
-
-    def _read_register(self, register: int, length: int) -> bytearray:
-        """Low level register reading over I2C, returns a list of values"""
-        with self._i2c as i2c:
-            i2c.write(bytes([register & 0xFF]))
-            result = bytearray(length)
-            i2c.readinto(result)
-            # print("$%02X => %s" % (register, [hex(i) for i in result]))
-            return result
-
-    def _write_register_byte(self, register: int, value: int) -> None:
-        """Low level register writing over I2C, writes one 8-bit value"""
-        with self._i2c as i2c:
-            i2c.write(bytes([register & 0xFF, value & 0xFF]))
-            # print("$%02X <= 0x%02X" % (register, value))
-
