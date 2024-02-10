@@ -19,13 +19,13 @@ SCD40_ADDR = 0x62
 
 @dataclass
 class SensorData():
-    pm10: float
-    pm25: float
-    pm100: float
-    temp_c: float
-    humidity: float
-    pressure_hpa: float
-    co2: float
+    pm10: float = 0
+    pm25: float = 0
+    pm100: float = 0
+    temp_c: float = 0
+    humidity: float = 0
+    pressure_hpa: float = 0
+    co2: float = 0
 
 
 class Sensor():
