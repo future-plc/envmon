@@ -20,7 +20,7 @@ parser.add_argument("-v", "--debug", help="Enable debug logging", action="store_
 fig = plt.figure()
 ax = fig.add_subplot(1,1,1)
 xs = []
-ys = []
+y_data = []
 
 if __name__ == "__main__":
     args = parser.parse_args()
@@ -55,8 +55,8 @@ if __name__ == "__main__":
         xs = xs[-x_limit:]
         y_data = y_data[-x_limit:]
         ax.clear()
-        ax.plot(xs, [d.humidity for d in ys])
-        ax.plot(xs, [d.temp_c for d in ys])
+        ax.plot(xs, [d.humidity for d in y_data])
+        ax.plot(xs, [d.temp_c for d in y_data])
 
         plt.xticks(rotation=45, ha='right')
         plt.subplots_adjust(bottom=0.30)
