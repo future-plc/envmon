@@ -18,7 +18,6 @@ parser.add_argument("-v", "--debug", help="Enable debug logging", action="store_
 
 
 
-plot = Plotter()
 if __name__ == "__main__":
     args = parser.parse_args()
     logging.basicConfig(level=args.loglevel)
@@ -33,6 +32,7 @@ if __name__ == "__main__":
     scd40.start_periodic_measurement()
     time.sleep(0.2)
 
+    plot = Plotter(data)
     timer = Timer()
     for sensor in my_sensors:
         timer.add_event(sensor.read, sensor.read_interval)
@@ -40,11 +40,11 @@ if __name__ == "__main__":
     def print_readings():
         print(data)
     timer.add_event(print_readings, 5.0)
+    timer.add_event(plot.draw, 0.1)
 
     try:
         while 1:
             timer.run()
-            plot.draw(data)
     except KeyboardInterrupt:
         logging.info("Keyboard Interrupt Caught")
         print("Shutting down")
