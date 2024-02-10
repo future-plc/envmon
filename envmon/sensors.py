@@ -78,7 +78,7 @@ class Sensor():
                             "Class needs to implement a send buffer"
                         )
                     cmd = self._send_buffer
-                self.logger.debug("Sending command: {}".format(cmd))
+                self.logger.debug("Sending command: {}".format(cmd.hex()))
                 device.write(cmd)
         time.sleep(kwargs.get("delay_ms", 0)/1000.0)
 
