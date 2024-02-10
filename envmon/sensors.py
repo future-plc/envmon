@@ -86,6 +86,7 @@ class Sensor():
                         device.readinto(buffer, end=len(buffer))
 
                 except OSError as err:
+                    self.logger.error("Unable to read from sensor")
                     self.logger.error(err)
                     self._connected = False
         else:
