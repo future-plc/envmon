@@ -15,7 +15,7 @@ class AQISensor(Sensor):
         return "PM2.5 AQI Sensor"
 
     def read(self) -> dict:
-        self._read_raw()
+        self._read_raw(length=32)
         header = self._buffer[0:2]
         if not header == b"BM":
             self.logger.error("Invalid header: {}".format(header))
