@@ -5,10 +5,10 @@ from sensors import Sensor
 AQI_ADDR = 0x12
 
 class AQISensor(Sensor):
-    def __init__(self, i2cbus, addr=AQI_ADDR):
+    def __init__(self, i2cbus, sensor_data, addr=AQI_ADDR):
         self.logger = logging.getLogger("envmon.aqi_sensor")
         self.logger.debug("Init AQI Sensor")
-        super().__init__(i2cbus, addr)
+        super().__init__(i2cbus, addr, sensor_data)
         self._buffer = bytearray(32)
 
     def __repr__(self) -> str:
@@ -32,6 +32,9 @@ class AQISensor(Sensor):
         try:
             results = struct.unpack(">HHHHHHHHHHHH", self._buffer[4:28])
             self.logger.debug(results)
+            self._sensor_data.pm10 = results[0]
+            self._sensor_data.pm25 = results[1]
+            self._sensor_data.pm100 = results[2]
         except struct.error:
             buffer_str = str(self._buffer)
             self.logger.error("failed to unpack buffer")

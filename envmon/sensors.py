@@ -3,7 +3,7 @@ import board
 import logger
 import logging
 import time
-from equations import bytes_to_pressure
+from dataclasses import dataclass
 from adafruit_bus_device.i2c_device import I2CDevice
 
 try:
@@ -14,17 +14,28 @@ except ImportError:
 
 sensor_logger = logging.getLogger(__name__)
 
-SGP40_ADDR = None
 SCD40_ADDR = 0x62
-BMP_SEA_LEVEL_PRESSURE = 2971155.4124
+
+
+@dataclass
+class SensorData():
+    pm10: float
+    pm25: float
+    pm100: float
+    temp_c: float
+    humidity: float
+    pressure_hpa: float
+    co2: float
 
 
 class Sensor():
-    def __init__(self, i2cbus: I2C, addr):
+    def __init__(self, i2cbus: I2C, addr, sensor_data: SensorData):
         self.retries = 0
         self.addr = addr
         self.i2cbus = i2cbus
         self.i2c_device = None
+        self._sensor_data = sensor_data
+        self._interval = 0
         self._buffer = None
         self._connected = self.open_connection()
         if self.logger is None:
@@ -49,8 +60,19 @@ class Sensor():
     def connected(self):
         return self._connected
 
+    @property
+    def read_interval(self) -> float:
+        return self._interval
+
+    @read_interval.setter
+    def read_interval(self, interval: float):
+        self._interval = interval
+
     def reset(self):
-        raise NotImplementedError("Reset not supported by this sensor")
+        raise NotImplementedError("This class doesn't implement reset")
+
+    def read(self):
+        raise NotImplementedError("Subclasses of Sensor impl read function")
 
     def _read_raw(self, buffer: bytearray = None) -> None:
         if self._buffer is None:
