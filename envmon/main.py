@@ -19,7 +19,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("-v", "--debug", help="Enable debug logging", action="store_const", dest="loglevel", const=logging.DEBUG, default=logging.WARNING)
 
 
-fig, axs = plt.subplots(7, figsize=(3, 2), layout='constrained', sharex=True)
+fig, axs = plt.subplots(7, figsize=(6, 3), layout='constrained', sharex=True)
 #plt.tight_layout()
 # ax = fig.add_subplot(1,1,1)
 xs = []
@@ -72,12 +72,13 @@ if __name__ == "__main__":
     ani = animation.FuncAnimation(fig, animate, fargs=(xs, y_data), interval=1000, cache_frame_data=False)
 
     try:
-        while 1:
-            plt.show()
+        fig.canvas.manager.full_screen_toggle()
+        fig.show()
     except KeyboardInterrupt:
 
         logging.info("Keyboard Interrupt Caught")
         print("Shutting down")
+        ani.pause()
         plt.close(fig)
         for s in my_sensors:
             s.shutdown()
