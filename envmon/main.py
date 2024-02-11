@@ -58,7 +58,10 @@ xs = []
 y_data = []
 
 colors = ['red', 'orange', 'cyan', 'blue', 'green', 'purple', 'brown']
+def on_click(event):
+    plt.close(fig)
 
+plt.connect("button_press_event", on_click)
 
 def main():
     args = parser.parse_args()
