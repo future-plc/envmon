@@ -18,8 +18,11 @@ import matplotlib.animation as animation
 import matplotlib as mpl
 import datetime as dt
 
-
-UPDATE_INTERVAL = 1000
+"""
+Sensor Data Plotter
+(c) Gumgum Studio 2024
+License: GPL + MIT (dependencies)
+"""
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
@@ -55,7 +58,8 @@ y_data = []
 
 colors = ['red', 'orange', 'cyan', 'blue', 'green', 'purple', 'brown']
 
-if __name__ == "__main__":
+
+def main():
     args = parser.parse_args()
     logging.basicConfig(level=args.loglevel)
 
@@ -120,3 +124,7 @@ if __name__ == "__main__":
 
         time.sleep(0.1)
         sys.exit(0)
+
+
+if __name__ == "__main__":
+    main()
