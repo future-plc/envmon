@@ -19,7 +19,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("-v", "--debug", help="Enable debug logging", action="store_const", dest="loglevel", const=logging.DEBUG, default=logging.WARNING)
 
 
-fig, axs = plt.subplots(7, figsize=(14, 10), layout='constrained', sharex=True)
+fig, axs = plt.subplots(7, figsize=(3, 2), layout='constrained', sharex=True)
 #plt.tight_layout()
 # ax = fig.add_subplot(1,1,1)
 xs = []
@@ -78,8 +78,10 @@ if __name__ == "__main__":
 
         logging.info("Keyboard Interrupt Caught")
         print("Shutting down")
+        plt.close(fig)
         for s in my_sensors:
             s.shutdown()
+
         time.sleep(0.1)
         sys.exit(0)
 
