@@ -109,6 +109,9 @@ class BMP280(Sensor):  # pylint: disable=invalid-name
         """Pressure in hectoPascals at sea level. Used to calibrate `altitude`."""
         self._t_fine = None
 
+    def shutdown(self):
+        self._mode = Mode.SLEEP
+
     def _read_temperature(self) -> None:
         self.logger.debug("Reading Temperature")
         # perform one measurement

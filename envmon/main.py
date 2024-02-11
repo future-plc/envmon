@@ -59,7 +59,7 @@ if __name__ == "__main__":
         y_data = y_data[-x_limit:]
         for ax in axs:
             ax.clear()
-        for key, ax, c in zip(sensor_data_dict.keys()[:len(axs)], axs, colors):
+        for key, ax, c in zip(list(sensor_data_dict), axs, colors):
             ys = [y[key] for y in y_data]
             ax.plot(xs, ys, lw=3, color=c)
             ax.set_title(key.upper())

@@ -14,6 +14,10 @@ class AQISensor(Sensor):
     def __repr__(self) -> str:
         return "PM2.5 AQI Sensor"
 
+    def shutdown(self):
+        ''' This sensor doesnt have a shutdown command'''
+        pass
+
     def read(self) -> dict:
         self._read_raw(length=32)
         header = self._buffer[0:2]

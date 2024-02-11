@@ -49,34 +49,6 @@ class SCD40(Sensor):
     :param ~busio.I2C i2c_bus: The I2C bus the SCD4X is connected to.
     :param int address: The I2C device address for the sensor. Default is :const:`0x62`
 
-    **Quickstart: Importing and using the SCD4X**
-
-        Here is an example of using the :class:`SCD4X` class.
-        First you will need to import the libraries to use the sensor
-
-        .. code-block:: python
-
-            import board
-            import adafruit_scd4x
-
-        Once this is done you can define your `board.I2C` object and define your sensor object
-
-        .. code-block:: python
-
-            i2c = board.I2C()   # uses board.SCL and board.SDA
-            scd = adafruit_scd4x.SCD4X(i2c)
-            scd.start_periodic_measurement()
-
-        Now you have access to the CO2, temperature and humidity using
-        the :attr:`CO2`, :attr:`temperature` and :attr:`relative_humidity` attributes
-
-        .. code-block:: python
-
-            if scd.data_ready:
-                temperature = scd.temperature
-                relative_humidity = scd.relative_humidity
-                co2_ppm_level = scd.CO2
-
     """
 
     def __init__(self, i2c_bus: I2C, sensor_data: SensorData, addr: int = SCD4X_DEFAULT_ADDR) -> None:
@@ -92,6 +64,9 @@ class SCD40(Sensor):
         self._relative_humidity = None
         self._co2 = None
 
+        self.stop_periodic_measurement()
+
+    def shutdown(self):
         self.stop_periodic_measurement()
 
     def read(self):
