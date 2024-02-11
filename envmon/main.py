@@ -60,6 +60,14 @@ y_data = []
 colors = ['red', 'orange', 'cyan', 'blue', 'green', 'purple', 'brown']
 def on_click(event):
     plt.close(fig)
+    logging.debug("Click detected, shutting down")
+    print("Shutting down")
+    plt.close(fig)
+    for s in my_sensors:
+        s.shutdown()
+
+    time.sleep(0.1)
+    sys.exit(0)
 
 plt.connect("button_press_event", on_click)
 
@@ -114,20 +122,8 @@ def main():
     ani = animation.FuncAnimation(fig, animate, fargs=(
         xs, y_data), interval=1000, cache_frame_data=False)
 
-    try:
-        while 1:
-            plt.show()
-    except KeyboardInterrupt:
-
-        logging.info("Keyboard Interrupt Caught")
-        print("Shutting down")
-        ani.pause()
-        plt.close(fig)
-        for s in my_sensors:
-            s.shutdown()
-
-        time.sleep(0.1)
-        sys.exit(0)
+    while 1:
+        plt.show()
 
 
 if __name__ == "__main__":
