@@ -1,31 +1,60 @@
-from sensors import SensorData
-from scd40 import SCD40
-from pm25aqi import AQISensor
-from bmp280 import BMP280
-from timer import Timer
-import board
-import matplotlib.pyplot as plt
-import matplotlib.animation as animation
-import matplotlib as mpl
-import datetime as dt
-from busio import I2C
 import logging
 import argparse
 import time
 import sys
 import dataclasses
 
+from sensors import SensorData
+from scd40 import SCD40
+from pm25aqi import AQISensor
+from bmp280 import BMP280
+from timer import Timer
+
+import board
+from busio import I2C
+
+import matplotlib.pyplot as plt
+import matplotlib.animation as animation
+import matplotlib as mpl
+import datetime as dt
+
+
 UPDATE_INTERVAL = 1000
+
 parser = argparse.ArgumentParser()
-parser.add_argument("-v", "--debug", help="Enable debug logging", action="store_const", dest="loglevel", const=logging.DEBUG, default=logging.WARNING)
+parser.add_argument(
+    "-v",
+    "--debug",
+    help="Enable debug logging",
+    action="store_const",
+    dest="loglevel",
+    const=logging.DEBUG,
+    default=logging.WARNING
+)
+
+parser.add_argument(
+    "-a",
+    "--altitude",
+    help="Set current altitude in meters",
+    action="store",
+    dest="altitude"
+)
 
 mpl.rcParams['toolbar'] = 'None'
 
-fig, axs = plt.subplots(7, figsize=(6.5, 4.5), layout='constrained', sharex=True)
+fig, axs = plt.subplots(
+    7,
+    figsize=(6.5, 4.5),
+    layout='constrained',
+    sharex=True
+)
+
+fig.canvas.manager.full_screen_toggle()
 xs = []
 y_data = []
 
 colors = ['red', 'orange', 'cyan', 'blue', 'green', 'purple', 'brown']
+
 if __name__ == "__main__":
     args = parser.parse_args()
     logging.basicConfig(level=args.loglevel)
@@ -37,6 +66,9 @@ if __name__ == "__main__":
     bmp280 = BMP280(i2c, data)
     scd40 = SCD40(i2c, data)
     my_sensors = [aqi, bmp280, scd40]
+
+    if args.altitude:
+        scd40.altitude(args.altitude)
 
     scd40.start_periodic_measurement()
     time.sleep(0.2)
@@ -66,13 +98,14 @@ if __name__ == "__main__":
             ax.set_xlim(0, 20)
             ax.set_xticks(ticks=xs)
             ax.tick_params(axis='x', labelrotation=45)
-            ax.tick_params(axis='y', labelleft=False, labelright=True, left=False, right=True) 
+            ax.tick_params(axis='y', labelleft=False,
+                           labelright=True, left=False, right=True)
 
         fig.suptitle("Sensor Data")
 
-    ani = animation.FuncAnimation(fig, animate, fargs=(xs, y_data), interval=1000, cache_frame_data=False)
+    ani = animation.FuncAnimation(fig, animate, fargs=(
+        xs, y_data), interval=1000, cache_frame_data=False)
 
-    fig.canvas.manager.full_screen_toggle()
     try:
         while 1:
             plt.show()
@@ -87,4 +120,3 @@ if __name__ == "__main__":
 
         time.sleep(0.1)
         sys.exit(0)
-
