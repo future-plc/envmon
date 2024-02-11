@@ -6,6 +6,7 @@ from timer import Timer
 import board
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
+import matplotlib as mpl
 import datetime as dt
 from busio import I2C
 import logging
@@ -18,10 +19,9 @@ UPDATE_INTERVAL = 1000
 parser = argparse.ArgumentParser()
 parser.add_argument("-v", "--debug", help="Enable debug logging", action="store_const", dest="loglevel", const=logging.DEBUG, default=logging.WARNING)
 
+mpl.rcParams['toolbar'] = 'None'
 
-fig, axs = plt.subplots(7, figsize=(6, 3), layout='constrained', sharex=True)
-#plt.tight_layout()
-# ax = fig.add_subplot(1,1,1)
+fig, axs = plt.subplots(7, figsize=(6.5, 4.5), layout='constrained', sharex=True)
 xs = []
 y_data = []
 
@@ -62,18 +62,20 @@ if __name__ == "__main__":
         for key, ax, c in zip(list(sensor_data_dict), axs, colors):
             ys = [y[key] for y in y_data]
             ax.plot(xs, ys, lw=3, color=c)
-            ax.set_title(key.upper())
+            ax.set_ylabel(key.upper(), labelpad=10.0, rotation="horizontal")
             ax.set_xlim(0, 20)
             ax.set_xticks(ticks=xs)
             ax.tick_params(axis='x', labelrotation=45)
+            ax.tick_params(axis='y', labelleft=False, labelright=True, left=False, right=True) 
 
         fig.suptitle("Sensor Data")
 
     ani = animation.FuncAnimation(fig, animate, fargs=(xs, y_data), interval=1000, cache_frame_data=False)
 
+    fig.canvas.manager.full_screen_toggle()
     try:
-        fig.canvas.manager.full_screen_toggle()
-        fig.show()
+        while 1:
+            plt.show()
     except KeyboardInterrupt:
 
         logging.info("Keyboard Interrupt Caught")
