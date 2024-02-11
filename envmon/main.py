@@ -58,18 +58,7 @@ xs = []
 y_data = []
 
 colors = ['red', 'orange', 'cyan', 'blue', 'green', 'purple', 'brown']
-def on_click(event):
-    plt.close(fig)
-    logging.debug("Click detected, shutting down")
-    print("Shutting down")
-    plt.close(fig)
-    for s in my_sensors:
-        s.shutdown()
 
-    time.sleep(0.1)
-    sys.exit(0)
-
-plt.connect("button_press_event", on_click)
 
 def main():
     args = parser.parse_args()
@@ -82,6 +71,19 @@ def main():
     bmp280 = BMP280(i2c, data)
     scd40 = SCD40(i2c, data)
     my_sensors = [aqi, bmp280, scd40]
+    time.sleep(0.1)
+
+    def on_click(event):
+        plt.close(fig)
+        logging.debug("Click detected, shutting down")
+        print("Shutting down")
+        plt.close(fig)
+        for s in my_sensors:
+            s.shutdown()
+
+        sys.exit(0)
+
+    plt.connect("button_press_event", on_click)
 
     if args.altitude:
         scd40.altitude(args.altitude)
