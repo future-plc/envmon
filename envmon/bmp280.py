@@ -129,19 +129,15 @@ class BMP280(Sensor):  # pylint: disable=invalid-name
         raw_temperature = (
             self._read24(Register.TEMPDATA) / 16
         )  # lowest 4 bits get dropped
-        # print("raw temp: ", UT)
         var1 = (
             raw_temperature / 16384.0 - self._temp_calib[0] / 1024.0
         ) * self._temp_calib[1]
-        # print(var1)
         var2 = (
             (raw_temperature / 131072.0 - self._temp_calib[0] / 8192.0)
             * (raw_temperature / 131072.0 - self._temp_calib[0] / 8192.0)
         ) * self._temp_calib[2]
-        # print(var2)
 
         self._t_fine = int(var1 + var2)
-        # print("t_fine: ", self.t_fine)
 
 
     def reset(self) -> None:
