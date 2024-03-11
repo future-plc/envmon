@@ -1,6 +1,6 @@
-### Raspberry Pi Environmental Monitor
+## Raspberry Pi Environmental Monitor
 
-#### Parts List
+### Parts List
 - [Raspberry Pi](https://www.adafruit.com/product/4292)
 - [Power Supply](https://www.adafruit.com/product/4298)
 - [SD Card](https://www.adafruit.com/product/2693)
@@ -10,7 +10,7 @@
 - [qwicc I2C cables (4)](https://www.adafruit.com/product/4210)
 - [Raspi Display](https://www.adafruit.com/product/2423)
 
-#### Tools Needed
+### Tools Needed
 ---
 - Computer capable of writing image to SD card
 - Soldering Iron
@@ -21,13 +21,13 @@ These tools are optional, but recommended unless you're experienced with setting
 - HDMI Monitor
 - Keyboard + Mouse
 
-#### Assembly Instructions
+### Assembly Instructions
 - Solder or connect qwicc cable to these pins on the screen, or on raspi if not using screen
 <img src="display_connections.jpg"></img>
-#### Installation
+### Installation
 - get Raspberry Pi OS running on Pi
 	- see: [Installation](https://www.raspberrypi.com/software/)
-##### Initial Configuration
+#### Initial Configuration
 Text that appears like `this` is entered into the command line (terminal) one command at a time. text in `<brackets>` is replaced (including the brackets) with the relevant folder or path for your case.
 
 For example, `<project_directory>` for you might be replaced with `/home/alice/envmon`, if your username were alice.
@@ -43,7 +43,7 @@ The following commands are to be run one at a time.
 	- reboot
 - Log back in
 
-##### Display Setup
+#### Display Setup
 You can skip this step if you aren't using the display we used, or replace these instructions with the relevant ones from the seller/manufacturer of your display.
 - `cd ~`
 - `pip3 install --upgrade adafruit-python-shell click`
@@ -56,7 +56,7 @@ You can skip this step if you aren't using the display we used, or replace these
 - If screen works, continue
 see: [Install Instructions](https://learn.adafruit.com/adafruit-2-8-pitft-capacitive-touch/easy-install-2) for more detail
 
-##### Installing Envmon
+#### Installing Envmon
 Change directory to home, and clone the project using git.
 - `cd ~`
 - `git clone <link_to_project>` _REPLACE ME WITH ACTUAL PROJECT LINK!!!_
@@ -69,7 +69,7 @@ We make a python virtual environment so that we don't accidentally mess up other
 
 Note that "sourcing" this venv does not persist across rebooting or exiting the shell. `pip -V` will show the current python environment path, to see if you are in a venv or not.
 
-##### Setting up EnvMon
+#### Setting up EnvMon
 - Plug in sensors one at a time
 - `sudo i2cdetect -y 1`
 - Plug in sensors and repeat previous step until all sensors are detected.
@@ -77,5 +77,5 @@ Note that "sourcing" this venv does not persist across rebooting or exiting the 
 - `python3 main.py`
 - exit script with keyboard interrupt (control + c)
 
-##### Further Reading:
+#### Further Reading:
 - [Logging sensor data](https://tutorials-raspberrypi.com/log-raspberry-pi-sensor-data-with-thingspeak-and-analyze-it/)
