@@ -14,7 +14,12 @@ try:
 except ImportError:
     pass
 
+"""
+BMP280 interface class
+Based on library provided by Adafruit
 
+https://github.com/adafruit/Adafruit_CircuitPython_BMP280
+"""
 #    I2C ADDRESS/BITS/SETTINGS
 #    -----------------------------------------------------------------------
 
