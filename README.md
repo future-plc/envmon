@@ -23,6 +23,7 @@ These tools are optional, but recommended unless you're experienced with setting
 
 #### Assembly Instructions
 - Solder or connect qwicc cable to these pins on the screen, or on raspi if not using screen
+<img src="display_connections.jpg">
 #### Installation
 - get Raspberry Pi OS running on Pi
 	- see: [Installation](https://www.raspberrypi.com/software/)
