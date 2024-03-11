@@ -1,4 +1,3 @@
-
 import time
 import struct
 import logging
@@ -11,7 +10,12 @@ try:
     from busio import I2C
 except ImportError:
     pass
+"""
+Interface class for SCD40 co2 Sensor Module
+Based on library provided by Adafruit
 
+https://github.com/adafruit/Adafruit_CircuitPython_SCD4X
+"""
 
 SCD4X_DEFAULT_ADDR = 0x62
 

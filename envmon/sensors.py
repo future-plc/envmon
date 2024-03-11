@@ -1,18 +1,16 @@
-import struct
-import board
-import logger
 import logging
+from logging import Logger
 import time
 from dataclasses import dataclass
 from adafruit_bus_device.i2c_device import I2CDevice
 
 try:
     from busio import I2C  # pylint: disable=unused-import
-    from typing import Optional, List
+    from typing import Optional, Union 
 except ImportError:
     pass
 
-sensor_logger = logging.getLogger(__name__)
+logger: Logger = logging.getLogger(__name__)
 
 SCD40_ADDR = 0x62
 
@@ -33,13 +31,13 @@ class Sensor():
         self.retries = 0
         self.addr = addr
         self.i2cbus = i2cbus
-        self.i2c_device = None
+        self.i2c_device: Optional[I2CDevice] = None
         self._sensor_data = sensor_data
         self._interval = 5.0  # 5 seconds unless otherwise specified
         self._buffer = None
         self._connected = self.open_connection()
         if self.logger is None:
-            self.logger = logger.getLogger("envmon.sensor")
+            self.logger = logging.getLogger("envmon.sensor")
 
     def open_connection(self):
         if self.retries > 5:
@@ -49,7 +47,7 @@ class Sensor():
         try:
             self.i2c_device = I2CDevice(self.i2cbus, self.addr)
         except ValueError:
-            logger.debug("Failed to connect")
+            self.logger.debug("Failed to connect")
             self.retries = self.retries + 1
             return False
         else:
@@ -57,7 +55,7 @@ class Sensor():
             return True
 
     @property
-    def connected(self):
+    def connected(self) -> Optional[bool]:
         return self._connected
 
     @property
@@ -65,7 +63,7 @@ class Sensor():
         return self._interval
 
     @read_interval.setter
-    def read_interval(self, interval: float):
+    def read_interval(self, interval: float) -> None:
         self._interval = interval
 
     def reset(self):
@@ -74,10 +72,10 @@ class Sensor():
     def read(self):
         raise NotImplementedError("Subclasses of Sensor impl read function")
 
-    def _read_raw(self, buffer: bytearray = None, length=1) -> None:
+    def _read_raw(self, buffer: Optional[bytearray] = None, length=1) -> None:
         if self._buffer is None:
             raise NotImplementedError("Need to give this a bytearray buffer")
-        if self._connected:
+        if self._connected and self.i2c_device:
             with self.i2c_device as device:
                 try:
                     if buffer is None:
@@ -92,8 +90,8 @@ class Sensor():
         else:
             self.open_connection()
 
-    def _send_cmd(self, cmd: bytearray = None, **kwargs):
-        if self._connected:
+    def _send_cmd(self, cmd: Optional[Union[bytearray, bytes]] = None, **kwargs) -> None:
+        if self._connected and self.i2c_device:
             with self.i2c_device as device:
                 if cmd is None:
                     if self._send_buffer is None:
@@ -107,10 +105,10 @@ class Sensor():
         time.sleep(kwargs.get("delay_ms", 0)/1000.0)
 
     @staticmethod
-    def convert_16(val: int):
+    def convert_16(val) -> Union[bytearray, bytes]:
         if isinstance(val, bytearray) or isinstance(val, bytes):
             return val
-        ret = bytearray(2)
+        ret: bytearray = bytearray(2)
         if not isinstance(val, int):
             val = int(val)
         ret[0] = (val >> 8) & 0xFF

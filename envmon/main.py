@@ -1,4 +1,3 @@
-#!/usr/bin/python3
 import logging
 import argparse
 import time
@@ -22,9 +21,15 @@ import datetime as dt
 """
 Sensor Data Plotter
 (c) Gumgum Studio 2024
-License: GPL + MIT (dependencies)
+License: GPL 
+
+This example is intended for educational purposes.
+Sensors are not calibrated by default, as such,
+this code should not be depended on in safety critical environments
+
 """
 
+# Create command line arguments
 parser = argparse.ArgumentParser()
 parser.add_argument(
     "-v",
@@ -36,16 +41,8 @@ parser.add_argument(
     default=logging.WARNING
 )
 
-parser.add_argument(
-    "-a",
-    "--altitude",
-    help="Set current altitude in meters",
-    action="store",
-    dest="altitude"
-)
-
+# Set size and formatting options for the plot
 mpl.rcParams['toolbar'] = 'None'
-
 fig, axs = plt.subplots(
     7,
     figsize=(6.5, 4.5),
@@ -54,25 +51,40 @@ fig, axs = plt.subplots(
 )
 
 fig.canvas.manager.full_screen_toggle()
+colors = ['red', 'orange', 'cyan', 'blue', 'green', 'purple', 'brown']
+
 xs = []
 y_data = []
-
-colors = ['red', 'orange', 'cyan', 'blue', 'green', 'purple', 'brown']
 
 
 def main():
     args = parser.parse_args()
     logging.basicConfig(level=args.loglevel)
 
+    # This is a dataclass whose fields are updated by the sensors 
+    # when their "read" method is called
     data = SensorData()
 
     i2c = I2C(board.SCL, board.SDA, frequency=100000)
     aqi = AQISensor(i2c, data)
     bmp280 = BMP280(i2c, data)
     scd40 = SCD40(i2c, data)
+
     my_sensors = [aqi, bmp280, scd40]
     time.sleep(0.1)
 
+    # required for C02 measurement
+    scd40.start_periodic_measurement()
+    time.sleep(0.2)
+
+    # The Timer class keeps track of how long since reading each sensor
+    # This prevents overloading the I2C bus with constant read requests
+    timer = Timer()
+
+    for sensor in my_sensors:
+        timer.add_event(sensor.read, sensor.read_interval)
+
+    # This function is called when the user left clicks (or touches touchscreen)
     def on_click(event):
         plt.close(fig)
         logging.debug("Click detected, shutting down")
@@ -80,28 +92,18 @@ def main():
         plt.close(fig)
         for s in my_sensors:
             s.shutdown()
-
         sys.exit(0)
 
+    # Register the shutdown function with the click event
     plt.connect("button_press_event", on_click)
 
-    if args.altitude:
-        scd40.altitude(args.altitude)
-
-    scd40.start_periodic_measurement()
-    time.sleep(0.2)
-
-    timer = Timer()
-
-    for sensor in my_sensors:
-        timer.add_event(sensor.read, sensor.read_interval)
-
+    # The animation loop for the plot window
     def animate(i, xs, y_data):
         timer.run()
 
         xs.append(dt.datetime.now().strftime('%H:%M:%S'))
         sensor_data_dict = dataclasses.asdict(data)
-        y_data.append(sensor_data_dict)  # list of dictified objects
+        y_data.append(sensor_data_dict)
 
         x_limit = 20
 

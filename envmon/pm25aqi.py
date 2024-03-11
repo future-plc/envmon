@@ -3,7 +3,13 @@ import struct
 from sensors import Sensor
 
 AQI_ADDR = 0x12
+"""
+Sensor class for PM2.5 AQI sensor using i2c
 
+Based on library provided by Adafruit
+https://github.com/adafruit/Adafruit_CircuitPython_PM25
+
+"""
 class AQISensor(Sensor):
     def __init__(self, i2cbus, sensor_data, addr=AQI_ADDR):
         self.logger = logging.getLogger("envmon.AQI")
