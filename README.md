@@ -59,8 +59,8 @@ see: [Install Instructions](https://learn.adafruit.com/adafruit-2-8-pitft-capaci
 #### Installing Envmon
 Change directory to home, and clone the project using git.
 - `cd ~`
-- `git clone <link_to_project>` _REPLACE ME WITH ACTUAL PROJECT LINK!!!_
-- `cd ./<project_dir>`
+- `git clone https://github.com/future-plc/envmon.git`
+- `cd ./envmon`
 
 We make a python virtual environment so that we don't accidentally mess up other system-wide python dependencies.
 - `python3 -m venv .venv`
